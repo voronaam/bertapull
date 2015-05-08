@@ -51,6 +51,13 @@ public class BertaPullMain {
             }
             return String.format("Checked all connections. Found %d alive and %d dead\n", alive, dead);
         });
+        
+        get("/test/:name", (req, res) -> {
+            for(BertaConnection c: connections.values()) {
+                c.setTest(req.params("name"));
+            }
+            return "Test Name Set\n";
+        });
 
         exception(LogicException.class, (e, request, response) -> {
             response.status(409);

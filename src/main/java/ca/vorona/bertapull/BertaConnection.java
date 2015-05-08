@@ -1,7 +1,5 @@
 package ca.vorona.bertapull;
 
-import java.util.concurrent.ExecutionException;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -26,7 +24,7 @@ public class BertaConnection {
         this.port = port;
     }
 
-    public void connect() throws Exception {
+    public synchronized void connect() throws Exception {
         group = new NioEventLoopGroup();
         handler = new BertaClientHandler();
         try {
@@ -54,7 +52,7 @@ public class BertaConnection {
         }
     }
     
-    public void disconnect() throws Exception {
+    public synchronized void disconnect() throws Exception {
         try {
             if(channel != null) {
                 channel.close().get();
@@ -74,6 +72,15 @@ public class BertaConnection {
         }
         channel.writeAndFlush("BMAGIC\n");
         return handler.getResponse().equals("Magic is here!");
+    }
+
+    public synchronized void setTest(String name) throws LogicException {
+        if(channel == null) {
+            throw new LogicException("Not connected");
+        }
+        name = name.replace('\n', '.'); // Make sure we don't break our simple text API
+        channel.writeAndFlush(name + "\n");
+        // ElasticSearchClient.send handler.getResponse()
     }
 
 }
