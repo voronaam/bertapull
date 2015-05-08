@@ -19,6 +19,7 @@ public class BertaConnection {
     private final int port;
     private EventLoopGroup group;
     private Channel channel;
+    private BertaClientHandler handler;
 
     public BertaConnection(String host, int port) {
         this.host = host;
@@ -27,6 +28,7 @@ public class BertaConnection {
 
     public void connect() throws Exception {
         group = new NioEventLoopGroup();
+        handler = new BertaClientHandler();
         try {
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<Channel>() {
@@ -34,15 +36,20 @@ public class BertaConnection {
                 protected void initChannel(Channel ch) throws Exception {
                     ch.pipeline().addLast("frameDecoder", new LineBasedFrameDecoder(8000));
                     ch.pipeline().addLast("stringDecoder", new StringDecoder(CharsetUtil.UTF_8));
-                    ch.pipeline().addLast(new BertaClientHandler());
+                    ch.pipeline().addLast(handler);
                     ch.pipeline().addLast("stringEncoder", new StringEncoder(CharsetUtil.UTF_8));
                 }
             });
 
             // Start the connection attempt.
             channel = b.connect(host, port).sync().channel();
+            if(!handler.getResponse().equals("Welcome to Berta!")) {
+                throw new Exception("Could not reach Berta on the given host and port");
+            }
         } catch(Exception e) {
             group.shutdownGracefully();
+            channel = null;
+            group = null;
             throw e;
         }
     }
@@ -59,6 +66,14 @@ public class BertaConnection {
             channel = null;
             group = null;
         }
+    }
+
+    public synchronized boolean check() throws InterruptedException {
+        if(channel == null) {
+            return false;
+        }
+        channel.writeAndFlush("BMAGIC\n");
+        return handler.getResponse().equals("Magic is here!");
     }
 
 }
