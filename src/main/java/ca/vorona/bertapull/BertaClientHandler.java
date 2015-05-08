@@ -13,7 +13,7 @@ public class BertaClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, String msg) throws Exception {
         responses.offer(msg);
-        System.out.println(msg);
+        // System.out.println(msg); // For debugging
     }
 
     public String getResponse() throws InterruptedException {

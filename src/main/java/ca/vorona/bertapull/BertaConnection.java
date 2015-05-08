@@ -11,17 +11,23 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 public class BertaConnection {
 
     private final String host;
     private final int port;
+    private final Indexer indexer;
     private EventLoopGroup group;
     private Channel channel;
     private BertaClientHandler handler;
 
-    public BertaConnection(String host, int port) {
+    public BertaConnection(String host, int port, Indexer indexer) {
         this.host = host;
         this.port = port;
+        this.indexer = indexer;
     }
 
     public synchronized void connect() throws Exception {
@@ -74,13 +80,23 @@ public class BertaConnection {
         return handler.getResponse().equals("Magic is here!");
     }
 
-    public synchronized void setTest(String name) throws LogicException {
+    public synchronized void setTest(String name) throws Exception {
         if(channel == null) {
             throw new LogicException("Not connected");
         }
         name = name.replace('\n', '.'); // Make sure we don't break our simple text API
         channel.writeAndFlush(name + "\n");
-        // ElasticSearchClient.send handler.getResponse()
+        String testName = handler.getResponse();
+        List<String> methods = new ArrayList<String>(2000);
+        while(true) {
+            String method = handler.getResponse();
+            if(method.equals("--END--")) {
+                break;
+            }
+            methods.add(method);
+        }
+        // TODO: Need to make that part asynchronous
+        indexer.indexMethods(testName, methods, new Date());
     }
 
 }

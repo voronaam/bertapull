@@ -10,6 +10,8 @@ public class BertaPullMain {
     private static ConcurrentHashMap<String, BertaConnection> connections = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
+        
+        Indexer indexer = new ElasticSearchIndexer();
 
         // Manage connections
         get("/connect/:host/:port", (req, res) -> {
@@ -19,7 +21,7 @@ public class BertaPullMain {
             if(connections.containsKey(connectionKey)) {
                 throw new LogicException("Already Connected");
             }
-            BertaConnection c = new BertaConnection(host, port);
+            BertaConnection c = new BertaConnection(host, port, indexer);
             c.connect();
             connections.put(connectionKey, c);
             return "Connected\n";
