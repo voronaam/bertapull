@@ -1,5 +1,6 @@
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
+apply plugin: 'eclipse'
 
 repositories {
     jcenter()
@@ -7,5 +8,13 @@ repositories {
 
 dependencies {
     compile 'com.sparkjava:spark-core:2.1'
+}
+
+task run(
+        type: JavaExec,
+        description: "Runs the node from the developer's environment.  Debug port 9599.  JMX port 9499.",
+        dependsOn: [classes, processTestResources]) {
+    main = 'ca.vorona.bertapull.BertaPullMain'
+    classpath = sourceSets.main.runtimeClasspath
 }
 
