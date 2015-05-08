@@ -1,0 +1,11 @@
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'com.sparkjava:spark-core:2.1'
+}
+
