@@ -6,8 +6,11 @@ repositories {
     jcenter()
 }
 
+def nettyVersion = '5.0.0.Alpha2'
+
 dependencies {
     compile 'com.sparkjava:spark-core:2.1'
+    compile "io.netty:netty-handler:$nettyVersion"
 }
 
 task run(
